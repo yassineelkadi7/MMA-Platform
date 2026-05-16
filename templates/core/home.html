@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Home — MMA Fighting Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Hero section with live clock -->
+    <div class="text-center mb-5">
+
+        <!-- Live GMT+1 clock — right-aligned, compact -->
+        <div class="d-flex justify-content-end mb-3">
+            <div class="px-3 py-2 rounded-3 border shadow-sm text-end"
+                 style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; min-width: 180px;">
+                <div class="text-uppercase fw-semibold mb-0" style="font-size: .6rem; letter-spacing: .15em; opacity: .65;">
+                    GMT+1
+                </div>
+                <div id="live-clock" class="font-monospace fw-bold lh-1"
+                     style="font-size: 1.4rem; letter-spacing: .04em;">
+                    --:--:--
+                </div>
+                <div id="live-date" class="mt-1" style="font-size: .65rem; opacity: .7;">
+                    Loading…
+                </div>
+            </div>
+        </div>
+
+        <h1 class="display-4 fw-bold mb-3">Welcome to MMA Fighting Platform</h1>
+        <p class="lead text-muted mb-4">
+            Your all-in-one hub for MMA news, upcoming events, training tools, and AI-powered coaching.
+        </p>
+        {% if not user.is_authenticated %}
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{% url 'accounts:register' %}"
+                   class="btn btn-primary btn-lg px-5"
+                   style="min-height: 44px; display: inline-flex; align-items: center;">
+                    Get Started
+                </a>
+                <a href="{% url 'accounts:login' %}"
+                   class="btn btn-outline-secondary btn-lg px-5"
+                   style="min-height: 44px; display: inline-flex; align-items: center;">
+                    Sign In
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Feature cards -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+
+        <!-- News -->
+        <div class="col">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" aria-hidden="true">📰</div>
+                    <h2 class="card-title h5">News</h2>
+                    <p class="card-text text-muted flex-grow-1">
+                        Stay up to date with the latest MMA news, fight results, and fighter updates.
+                    </p>
+                    <a href="{% url 'news:list' %}"
+                       class="btn btn-outline-primary mt-auto"
+                       style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                        Browse News
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events -->
+        <div class="col">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" aria-hidden="true">🗓️</div>
+                    <h2 class="card-title h5">Events</h2>
+                    <p class="card-text text-muted flex-grow-1">
+                        View upcoming events, fight cards, and countdowns to the next big card.
+                    </p>
+                    <a href="{% url 'events:calendar' %}"
+                       class="btn btn-outline-primary mt-auto"
+                       style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                        View Calendar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training -->
+        <div class="col">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" aria-hidden="true">⏱️</div>
+                    <h2 class="card-title h5">Training</h2>
+                    <p class="card-text text-muted flex-grow-1">
+                        Use the stopwatch to time your rounds, drills, and rest periods.
+                    </p>
+                    <a href="{% url 'training:stopwatch' %}"
+                       class="btn btn-outline-primary mt-auto"
+                       style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                        Open Stopwatch
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Assistant -->
+        <div class="col">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" aria-hidden="true">🥊</div>
+                    <h2 class="card-title h5">AI Assistant</h2>
+                    <p class="card-text text-muted flex-grow-1">
+                        Get personalised training programs and coaching advice from your AI assistant.
+                    </p>
+                    <a href="{% url 'ai_assistant:chat' %}"
+                       class="btn btn-outline-primary mt-auto"
+                       style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                        Chat Now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== Featured Fighters Section ===== -->
+    <div class="mt-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="h3 fw-bold mb-0">🥊 Featured Fighters</h2>
+            <a href="{% url 'events:fighter_list' %}" class="btn btn-outline-primary btn-sm"
+               style="min-height: 44px; display: inline-flex; align-items: center;">
+                Browse Fighters →
+            </a>
+        </div>
+
+        {% if top_fighters %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
+                {% for fighter in top_fighters %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3">
+                                    <h3 class="h5 mb-1">{{ fighter.full_name }}</h3>
+                                    <p class="text-muted small mb-0">
+                                        {{ fighter.nationality }}
+                                        {% if fighter.weight_class %}
+                                            · {{ fighter.weight_class.name }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <p class="text-muted small flex-grow-1 mb-3">
+                                    {{ fighter.fighting_style|default:"Fighting style not available" }}
+                                </p>
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <span class="badge bg-secondary py-2 px-3">
+                                        {{ fighter.wins }}-{{ fighter.losses }}-{{ fighter.draws }}
+                                    </span>
+                                    <small class="text-muted">W-L-D</small>
+                                </div>
+                                <a href="{% url 'events:fighter_detail' fighter.pk %}"
+                                   class="btn btn-outline-secondary mt-auto"
+                                   style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <p class="fs-5 mb-2">No fighters available yet.</p>
+                <p class="small mb-3">Sync fighter data or add fighters from the admin to populate this section.</p>
+                <a href="{% url 'events:fighter_list' %}"
+                   class="btn btn-outline-secondary"
+                   style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                    Browse Fighters
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== Latest News Section ===== -->
+    <div class="mt-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="h3 fw-bold mb-0">📰 Latest MMA News</h2>
+            <a href="{% url 'news:list' %}" class="btn btn-outline-primary btn-sm"
+               style="min-height: 44px; display: inline-flex; align-items: center;">
+                View All News →
+            </a>
+        </div>
+
+        {% if latest_articles %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                {% for article in latest_articles %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            {% if article.image_url %}
+                                <img src="{{ article.image_url }}" alt="{{ article.title }}"
+                                     class="card-img-top"
+                                     style="height: 180px; object-fit: cover;"
+                                     loading="lazy"
+                                     onerror="this.style.display='none'">
+                            {% else %}
+                                <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary bg-opacity-10"
+                                     style="height: 180px;">
+                                    <span style="font-size: 3rem; opacity: 0.3;">🥊</span>
+                                </div>
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <!-- Category badge -->
+                                <span class="badge mb-2 align-self-start
+                                    {% if article.category == 'results' %}bg-success
+                                    {% elif article.category == 'preview' %}bg-primary
+                                    {% elif article.category == 'fighter' %}bg-warning text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ article.get_category_display }}
+                                </span>
+                                <h3 class="card-title h6 fw-semibold">{{ article.title }}</h3>
+                                <p class="card-text text-muted small flex-grow-1">
+                                    {{ article.summary|truncatewords:20 }}
+                                </p>
+                                <div class="d-flex align-items-center justify-content-between mt-3">
+                                    <small class="text-muted">
+                                        {{ article.published_at|date:"N j, Y" }} · {{ article.source_name }}
+                                    </small>
+                                    <a href="{% url 'news:detail' article.pk %}"
+                                       class="btn btn-sm btn-outline-secondary"
+                                       style="min-height: 38px; display: inline-flex; align-items: center;">
+                                        Read →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <p class="fs-5 mb-3">No news articles yet.</p>
+                <p class="small">Run <code>python manage.py seed_sample_data</code> to add sample articles,
+                   or trigger a fetch from the <a href="/admin/news/article/">admin panel</a>.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const clockEl = document.getElementById('live-clock');
+    const dateEl  = document.getElementById('live-date');
+
+    const DAY_NAMES   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTH_NAMES = ['January','February','March','April','May','June',
+                         'July','August','September','October','November','December'];
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function tick() {
+        // Use Intl to get the current time in Europe/Paris (GMT+1 / GMT+2 DST)
+        const now = new Date();
+        const parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Europe/Paris',
+            hour:   '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            weekday: 'long',
+            day:    'numeric',
+            month:  'long',
+            year:   'numeric',
+        }).formatToParts(now);
+
+        const get = (type) => (parts.find(p => p.type === type) || {}).value || '';
+
+        const timeStr = `${get('hour')}:${get('minute')}:${get('second')}`;
+        const dateStr = `${get('weekday')}, ${get('day')} ${get('month')} ${get('year')}`;
+
+        // Determine offset label
+        const offset = -new Date().toLocaleString('en', {timeZone:'Europe/Paris',timeZoneName:'shortOffset'})
+            .split('GMT')[1] || '+1';
+        const tzLabel = new Date().toLocaleString('en', {timeZone:'Europe/Paris',timeZoneName:'short'})
+            .split(' ').pop();
+
+        if (clockEl) clockEl.textContent = timeStr;
+        if (dateEl)  dateEl.textContent  = `${dateStr} · ${tzLabel}`;
+    }
+
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+{% endblock %}

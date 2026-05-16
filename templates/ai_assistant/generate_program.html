@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Training Program — MMA Fighting Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h1 class="h5 mb-0">📋 Generate Training Program</h1>
+                </div>
+                <div class="card-body p-4">
+
+                    <div id="form-section">
+                        <p class="text-muted mb-4">
+                            Fill in your details and the AI will generate a personalised
+                            4-week training program formatted as a downloadable PDF.
+                        </p>
+
+                        <form id="program-form" novalidate>
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label for="goals" class="form-label fw-semibold">Training Goals</label>
+                                <input type="text" id="goals" name="goals" class="form-control"
+                                       placeholder="e.g. Improve cardio, learn takedowns, lose weight"
+                                       style="min-height: 44px;" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="fitness_level" class="form-label fw-semibold">Current Fitness Level</label>
+                                <select id="fitness_level" name="fitness_level" class="form-select"
+                                        style="min-height: 44px;" required>
+                                    <option value="">Select level…</option>
+                                    <option value="beginner">Beginner (0–6 months)</option>
+                                    <option value="intermediate">Intermediate (6 months – 2 years)</option>
+                                    <option value="advanced">Advanced (2+ years)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="days_per_week" class="form-label fw-semibold">Training Days per Week</label>
+                                <select id="days_per_week" name="days_per_week" class="form-select"
+                                        style="min-height: 44px;" required>
+                                    <option value="">Select days…</option>
+                                    <option value="2">2 days</option>
+                                    <option value="3">3 days</option>
+                                    <option value="4">4 days</option>
+                                    <option value="5">5 days</option>
+                                    <option value="6">6 days</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="limitations" class="form-label fw-semibold">
+                                    Physical Limitations <span class="text-muted fw-normal">(optional)</span>
+                                </label>
+                                <input type="text" id="limitations" name="limitations" class="form-control"
+                                       placeholder="e.g. Bad knee, shoulder injury"
+                                       style="min-height: 44px;">
+                            </div>
+
+                            <div id="error-msg" class="alert alert-danger d-none" role="alert"></div>
+
+                            <div class="d-grid">
+                                <button type="submit" id="generate-btn" class="btn btn-primary"
+                                        style="min-height: 44px;">
+                                    Generate Program
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="result-section" class="d-none text-center py-4">
+                        <div class="text-success fs-1 mb-3">✅</div>
+                        <h2 class="h5 mb-3">Your program is ready!</h2>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a id="download-link" href="#" class="btn btn-primary"
+                               style="min-height: 44px; display: inline-flex; align-items: center;">
+                                ⬇ Download PDF
+                            </a>
+                            <a href="{% url 'ai_assistant:program_list' %}" class="btn btn-outline-secondary"
+                               style="min-height: 44px; display: inline-flex; align-items: center;">
+                                View All Programs
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const form = document.getElementById('program-form');
+    const btn = document.getElementById('generate-btn');
+    const errorMsg = document.getElementById('error-msg');
+    const formSection = document.getElementById('form-section');
+    const resultSection = document.getElementById('result-section');
+    const downloadLink = document.getElementById('download-link');
+
+    function getCookie(name) {
+        let value = null;
+        document.cookie.split(';').forEach(function (c) {
+            const parts = c.trim().split('=');
+            if (parts[0] === name) value = decodeURIComponent(parts[1]);
+        });
+        return value;
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        errorMsg.classList.add('d-none');
+        btn.disabled = true;
+        btn.textContent = 'Generating…';
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/ai/generate-program/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: formData,
+            });
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                errorMsg.textContent = data.error || 'Something went wrong. Please try again.';
+                errorMsg.classList.remove('d-none');
+                btn.disabled = false;
+                btn.textContent = 'Generate Program';
+            } else {
+                downloadLink.href = data.download_url;
+                formSection.classList.add('d-none');
+                resultSection.classList.remove('d-none');
+            }
+        } catch (err) {
+            errorMsg.textContent = 'Network error. Please check your connection.';
+            errorMsg.classList.remove('d-none');
+            btn.disabled = false;
+            btn.textContent = 'Generate Program';
+        }
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}My Training Programs — MMA Fighting Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+
+            <div class="card shadow-sm">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <span class="fs-5 fw-semibold">📋 My Training Programs</span>
+                    <a href="{% url 'ai_assistant:chat' %}"
+                       class="ms-auto btn btn-sm btn-outline-primary"
+                       style="min-height: 44px; display: inline-flex; align-items: center;"
+                       aria-label="Go to AI chat assistant">
+                        💬 Chat with AI
+                    </a>
+                </div>
+
+                <div class="card-body p-3">
+                    <h1 class="visually-hidden">My Training Programs</h1>
+
+                    {% if programs %}
+                        <div class="list-group list-group-flush">
+                            {% for program in programs %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-0">
+                                    <div>
+                                        <h2 class="h6 mb-1 fw-semibold">{{ program.title }}</h2>
+                                        <small class="text-muted">
+                                            Generated: {{ program.generated_at|date:"N j, Y, g:i a" }}
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'ai_assistant:program_download' pk=program.pk %}"
+                                       class="btn btn-sm btn-primary ms-3"
+                                       style="min-height: 44px; min-width: 44px; display: inline-flex; align-items: center;"
+                                       aria-label="Download PDF for {{ program.title }}">
+                                        ⬇ Download PDF
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-muted mb-3">No programs yet. Start a chat to generate your first training program.</p>
+                            <a href="{% url 'ai_assistant:chat' %}"
+                               class="btn btn-primary px-4"
+                               style="min-height: 44px; display: inline-flex; align-items: center;"
+                               aria-label="Go to AI chat to generate a program">
+                                💬 Start Chatting
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

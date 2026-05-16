@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ fighter.full_name }} — MMA Fighting Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Back link -->
+    <a
+        href="{% url 'events:fighter_list' %}"
+        class="btn btn-outline-secondary mb-4"
+        style="min-height: 44px;"
+        aria-label="Back to fighter search"
+    >
+        &larr; Back to Fighter Search
+    </a>
+
+    <!-- Fighter profile card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h1 class="card-title h2 mb-3">{{ fighter.full_name }}</h1>
+            <div class="row g-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Nationality</div>
+                    <div>{{ fighter.nationality|default:"—" }}</div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Weight Class</div>
+                    <div>
+                        {% if fighter.weight_class %}
+                            {{ fighter.weight_class.name }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Fighting Style</div>
+                    <div>{{ fighter.fighting_style|default:"—" }}</div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Record (W-L-D)</div>
+                    <div class="fw-bold fs-5">
+                        {{ fighter.wins }}-{{ fighter.losses }}-{{ fighter.draws }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Past fights -->
+    <h2 class="h4 mb-3">Fight History</h2>
+
+    {% if fights %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Opponent</th>
+                        <th scope="col">Event</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Outcome</th>
+                        <th scope="col">Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fight in fights %}
+                        {% if fight.fighter_a == fighter %}
+                            {% with opponent=fight.fighter_b %}
+                                <tr>
+                                    <td>
+                                        <a
+                                            href="{% url 'events:fighter_detail' opponent.pk %}"
+                                            class="text-decoration-none d-inline-flex align-items-center"
+                                            style="min-height: 44px;"
+                                        >
+                                            {{ opponent.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a
+                                            href="{% url 'events:event_detail' fight.event.pk %}"
+                                            class="text-decoration-none d-inline-flex align-items-center"
+                                            style="min-height: 44px;"
+                                        >
+                                            {{ fight.event.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ fight.event.date|date:"N j, Y" }}</td>
+                                    <td>
+                                        {% if fight.winner == fighter %}
+                                            <span class="badge bg-success">Win</span>
+                                        {% elif fight.winner == opponent %}
+                                            <span class="badge bg-danger">Loss</span>
+                                        {% elif fight.winner is None %}
+                                            <span class="badge bg-secondary">Draw</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ fight.get_method_display|default:"—" }}</td>
+                                </tr>
+                            {% endwith %}
+                        {% else %}
+                            {% with opponent=fight.fighter_a %}
+                                <tr>
+                                    <td>
+                                        <a
+                                            href="{% url 'events:fighter_detail' opponent.pk %}"
+                                            class="text-decoration-none d-inline-flex align-items-center"
+                                            style="min-height: 44px;"
+                                        >
+                                            {{ opponent.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a
+                                            href="{% url 'events:event_detail' fight.event.pk %}"
+                                            class="text-decoration-none d-inline-flex align-items-center"
+                                            style="min-height: 44px;"
+                                        >
+                                            {{ fight.event.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ fight.event.date|date:"N j, Y" }}</td>
+                                    <td>
+                                        {% if fight.winner == fighter %}
+                                            <span class="badge bg-success">Win</span>
+                                        {% elif fight.winner == opponent %}
+                                            <span class="badge bg-danger">Loss</span>
+                                        {% elif fight.winner is None %}
+                                            <span class="badge bg-secondary">Draw</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ fight.get_method_display|default:"—" }}</td>
+                                </tr>
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-4 text-muted">
+            <p>No fight history available for this fighter.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

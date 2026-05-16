@@ -1,0 +1,425 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>{% block title %}MMA Fighting Platform{% endblock %}</title>
+
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- Leaflet CSS (for gyms map) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        /* ===== Full-viewport layout — page always fills the screen ===== */
+        html {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            min-height: 100vh;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        main {
+            flex: 1 1 auto;   /* grows to fill all remaining space below navbar */
+        }
+
+        /* ===== Fluid containers — fill width at any zoom level ===== */
+        .container {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        .navbar > .container {
+            max-width: 100% !important;
+        }
+        * { box-sizing: border-box; }
+        img, video, iframe, table { max-width: 100%; }
+        [data-bs-theme="dark"] {
+            --bs-body-bg: #121212;
+            --bs-body-color: #e0e0e0;
+            --bs-card-bg: #1e1e1e;
+            --bs-border-color: #333;
+        }
+        [data-bs-theme="dark"] .card {
+            background-color: var(--bs-card-bg);
+            border-color: var(--bs-border-color);
+        }
+        [data-bs-theme="dark"] .bg-light {
+            background-color: #1a1a1a !important;
+        }
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-select {
+            background-color: #2a2a2a;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        [data-bs-theme="dark"] .list-group-item {
+            background-color: #1e1e1e;
+            border-color: #333;
+            color: #e0e0e0;
+        }
+        [data-bs-theme="dark"] .table {
+            --bs-table-bg: #1e1e1e;
+            --bs-table-striped-bg: #252525;
+            color: #e0e0e0;
+        }
+
+        /* Touch targets */
+        .navbar-nav .nav-link,
+        .navbar-brand {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .navbar-nav .btn { min-height: 44px; }
+
+        /* Dark mode toggle button */
+        #dark-mode-btn {
+            min-height: 44px;
+            min-width: 44px;
+            font-size: 1.1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0 8px;
+            color: rgba(255,255,255,0.75);
+            transition: color 0.2s;
+        }
+        #dark-mode-btn:hover { color: #fff; }
+
+        /* Gyms map modal */
+        #gyms-map { height: 400px; width: 100%; border-radius: 8px; }
+    </style>
+
+    <!-- Apply saved theme immediately to avoid flash -->
+    <script>
+        (function() {
+            const saved = localStorage.getItem('mma-theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', saved);
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- ===== Navigation Bar ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Main navigation">
+        <div class="container">
+
+            <a class="navbar-brand fw-bold" href="{% url 'core:home' %}">🥊 MMA Platform</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#mainNavbar" aria-controls="mainNavbar"
+                    aria-expanded="false" aria-label="Toggle navigation"
+                    style="min-height: 44px; min-width: 44px;">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'core:home' %}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'news:list' %}">News</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'events:calendar' %}">Events</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'training:stopwatch' %}">Training</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'ai_assistant:chat' %}">AI Assistant</a></li>
+                    <li class="nav-item">
+                        <button class="nav-link btn btn-link" data-bs-toggle="modal"
+                                data-bs-target="#gymsMapModal" style="min-height:44px;"
+                                title="Find nearby MMA gyms">
+                            📍 Nearby Gyms
+                        </button>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center gap-1">
+                    <!-- Dark mode toggle -->
+                    <li class="nav-item">
+                        <button id="dark-mode-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+                            🌙
+                        </button>
+                    </li>
+
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:profile' %}">{{ user.username }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm" style="min-height:44px;">
+                                    Logout
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Login</a></li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-sm" href="{% url 'accounts:register' %}"
+                               style="min-height:44px; display:inline-flex; align-items:center;">
+                                Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== Django Messages ===== -->
+    {% if messages %}
+        <div class="container mt-3" aria-live="polite" aria-atomic="true">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- ===== Page Content ===== -->
+    <main>{% block content %}{% endblock %}</main>
+
+    <!-- ===== Nearby Gyms Modal ===== -->
+    <div class="modal fade" id="gymsMapModal" tabindex="-1" aria-labelledby="gymsMapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gymsMapModalLabel">📍 MMA &amp; Fitness Gyms Near You (10 km)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-2">
+                    <div id="gyms-map-status" class="text-center text-muted py-3">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        Detecting your location…
+                    </div>
+                    <div id="gyms-map" style="display:none;"></div>
+                    <p class="text-muted small mt-2 mb-0">
+                        Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
+                        Gyms sourced from <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap</a> via Overpass API.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Dark mode script -->
+    <script>
+    (function () {
+        const btn = document.getElementById('dark-mode-btn');
+        const html = document.documentElement;
+
+        function applyTheme(theme) {
+            html.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('mma-theme', theme);
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+            btn.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+        }
+
+        // Apply saved theme on load
+        applyTheme(localStorage.getItem('mma-theme') || 'light');
+
+        btn.addEventListener('click', function () {
+            const current = html.getAttribute('data-bs-theme');
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+    })();
+    </script>
+
+    <!-- Nearby gyms map script -->
+    <script>
+    (function () {
+        let mapInitialized = false;
+        let leafletMap = null;
+
+        const modal = document.getElementById('gymsMapModal');
+        if (!modal) return;
+
+        modal.addEventListener('show.bs.modal', function () {
+            if (mapInitialized) return;
+            initGymsMap();
+        });
+
+        function initGymsMap() {
+            const statusEl = document.getElementById('gyms-map-status');
+            const mapEl = document.getElementById('gyms-map');
+
+            if (!navigator.geolocation) {
+                statusEl.innerHTML = '⚠️ Geolocation is not supported by your browser.';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+
+                    statusEl.style.display = 'none';
+                    mapEl.style.display = 'block';
+                    mapInitialized = true;
+
+                    // Init Leaflet map
+                    leafletMap = L.map('gyms-map').setView([lat, lon], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors',
+                        maxZoom: 19,
+                    }).addTo(leafletMap);
+
+                    // User location marker
+                    L.marker([lat, lon], {
+                        icon: L.divIcon({
+                            className: '',
+                            html: '<div style="background:#0d6efd;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 6px rgba(0,0,0,.4);"></div>',
+                            iconSize: [14, 14],
+                            iconAnchor: [7, 7],
+                        })
+                    }).addTo(leafletMap).bindPopup('<strong>You are here</strong>').openPopup();
+
+                    // 10 km radius circle
+                    L.circle([lat, lon], {
+                        radius: 10000,
+                        color: '#0d6efd',
+                        fillColor: '#0d6efd',
+                        fillOpacity: 0.05,
+                        weight: 1,
+                    }).addTo(leafletMap);
+
+                    // Fetch gyms from Overpass API
+                    fetchNearbyGyms(lat, lon);
+                },
+                function (err) {
+                    statusEl.innerHTML = '⚠️ Could not get your location. Please allow location access and try again.';
+                },
+                { timeout: 10000 }
+            );
+        }
+
+        function fetchNearbyGyms(lat, lon) {
+            const radius = 10000; // 10 km in metres
+            // Broad query covering all gym/sport facility types in OSM
+            const query = `
+                [out:json][timeout:30];
+                (
+                  node["leisure"="fitness_centre"](around:${radius},${lat},${lon});
+                  node["leisure"="sports_centre"](around:${radius},${lat},${lon});
+                  node["amenity"="gym"](around:${radius},${lat},${lon});
+                  node["sport"~"martial_arts|mma|boxing|judo|karate|taekwondo|wrestling|jiu_jitsu|kickboxing|fitness"](around:${radius},${lat},${lon});
+                  way["leisure"="fitness_centre"](around:${radius},${lat},${lon});
+                  way["leisure"="sports_centre"](around:${radius},${lat},${lon});
+                  way["amenity"="gym"](around:${radius},${lat},${lon});
+                  way["sport"~"martial_arts|mma|boxing|judo|karate|taekwondo|wrestling|jiu_jitsu|kickboxing|fitness"](around:${radius},${lat},${lon});
+                  relation["leisure"="fitness_centre"](around:${radius},${lat},${lon});
+                  relation["leisure"="sports_centre"](around:${radius},${lat},${lon});
+                );
+                out center tags;
+            `;
+
+            fetch('https://overpass-api.de/api/interpreter', {
+                method: 'POST',
+                body: 'data=' + encodeURIComponent(query),
+            })
+            .then(r => r.json())
+            .then(function (data) {
+                const elements = data.elements || [];
+
+                // Deduplicate by name+position
+                const seen = new Set();
+                const unique = elements.filter(function(el) {
+                    const elLat = el.lat || (el.center && el.center.lat);
+                    const elLon = el.lon || (el.center && el.center.lon);
+                    if (!elLat || !elLon) return false;
+                    const key = `${Math.round(elLat*10000)},${Math.round(elLon*10000)}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+
+                // Update modal title with count
+                const titleEl = document.getElementById('gymsMapModalLabel');
+                if (titleEl) {
+                    titleEl.textContent = `📍 MMA & Fitness Gyms Near You — ${unique.length} found within 10 km`;
+                }
+
+                if (unique.length === 0) {
+                    L.popup()
+                        .setLatLng([lat, lon])
+                        .setContent('No gyms found in OpenStreetMap within 10 km.<br><small>Try searching on <a href="https://www.google.com/maps/search/gym+near+me" target="_blank">Google Maps</a>.</small>')
+                        .openOn(leafletMap);
+                    return;
+                }
+
+                unique.forEach(function (el) {
+                    const elLat = el.lat || (el.center && el.center.lat);
+                    const elLon = el.lon || (el.center && el.center.lon);
+                    const tags = el.tags || {};
+                    const name = tags.name || tags['name:en'] || 'Unnamed gym';
+                    const sport = tags.sport || tags.leisure || '';
+                    const addr = [tags['addr:housenumber'], tags['addr:street'], tags['addr:city']]
+                        .filter(Boolean).join(' ');
+                    const phone = tags.phone || tags['contact:phone'] || '';
+                    const website = tags.website || tags['contact:website'] || '';
+
+                    // Colour by type
+                    const isMartialArts = /martial_arts|mma|boxing|judo|karate|taekwondo|wrestling|jiu_jitsu|kickboxing/.test(sport);
+                    const colour = isMartialArts ? '#dc3545' : '#fd7e14';
+
+                    const popup = `
+                        <strong>${escapeHtml(name)}</strong><br>
+                        ${sport ? '<span class="badge bg-secondary">' + escapeHtml(sport) + '</span><br>' : ''}
+                        ${addr ? '📍 ' + escapeHtml(addr) + '<br>' : ''}
+                        ${phone ? '📞 ' + escapeHtml(phone) + '<br>' : ''}
+                        ${website ? '<a href="' + escapeHtml(website) + '" target="_blank" rel="noopener">🌐 Website</a>' : ''}
+                    `;
+
+                    L.marker([elLat, elLon], {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="background:${colour};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 5px rgba(0,0,0,.5);"></div>`,
+                            iconSize: [14, 14],
+                            iconAnchor: [7, 7],
+                        })
+                    }).addTo(leafletMap).bindPopup(popup);
+                });
+
+                // Fit map to show all markers
+                if (unique.length > 0) {
+                    const bounds = unique.map(el => [
+                        el.lat || el.center.lat,
+                        el.lon || el.center.lon
+                    ]);
+                    bounds.push([lat, lon]);
+                    leafletMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+                }
+
+                setTimeout(function () { leafletMap.invalidateSize(); }, 300);
+            })
+            .catch(function (err) {
+                console.warn('Overpass API error:', err);
+            });
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

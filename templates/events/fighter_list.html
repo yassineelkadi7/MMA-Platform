@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Fighter Search — MMA Fighting Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h1 class="h2 mb-4">Fighter Search</h1>
+
+    <!-- Search form -->
+    <form method="get" action="" class="mb-4" role="search" aria-label="Fighter search">
+        <div class="input-group">
+            <input
+                type="text"
+                name="q"
+                id="fighter-search"
+                class="form-control"
+                placeholder="Search by fighter name…"
+                value="{{ query|default:'' }}"
+                aria-label="Fighter name"
+                autocomplete="off"
+                style="min-height: 44px;"
+            >
+            <button
+                type="submit"
+                class="btn btn-primary"
+                style="min-height: 44px;"
+                aria-label="Search fighters"
+            >
+                Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Results -->
+    {% if fighters %}
+        <p class="text-muted mb-3">
+            {{ fighters|length }} result{{ fighters|length|pluralize }} for
+            <strong>{{ query }}</strong>
+        </p>
+        <ul class="list-group mb-4">
+            {% for fighter in fighters %}
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <a
+                                href="{% url 'events:fighter_detail' fighter.pk %}"
+                                class="fw-semibold text-decoration-none d-inline-flex align-items-center"
+                                style="min-height: 44px;"
+                            >
+                                {{ fighter.full_name }}
+                            </a>
+                            <div class="text-muted small mt-1">
+                                <span>{{ fighter.nationality }}</span>
+                                {% if fighter.weight_class %}
+                                    &middot;
+                                    <span>{{ fighter.weight_class.name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-secondary fs-6 px-3 py-2">
+                                {{ fighter.wins }}-{{ fighter.losses }}-{{ fighter.draws }}
+                            </span>
+                            <div class="text-muted small mt-1">W-L-D</div>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+    {% elif query %}
+        <!-- No results found -->
+        <div class="text-center py-5">
+            <p class="text-muted fs-5 mb-2">
+                No results found for <strong>{{ query }}</strong>.
+            </p>
+            <p class="text-muted small">
+                Check the spelling or try a different name.
+            </p>
+            <a
+                href="{% url 'events:fighter_list' %}"
+                class="btn btn-outline-secondary mt-2"
+                style="min-height: 44px;"
+            >
+                Clear search
+            </a>
+        </div>
+
+    {% else %}
+        <!-- Initial state — no query yet -->
+        <div class="text-center py-5 text-muted">
+            <p class="fs-5">Enter a fighter name above to search.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

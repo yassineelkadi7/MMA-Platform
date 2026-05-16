@@ -1,0 +1,21 @@
+{
+  "name": "mma-fighting-platform",
+  "version": "1.0.0",
+  "description": "MMA Fighting Platform — frontend JS tests",
+  "private": true,
+  "scripts": {
+    "test": "jest --testPathPattern=stopwatch",
+    "test:all": "jest"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/static/js/__tests__/**/*.test.js"
+    ]
+  }
+}

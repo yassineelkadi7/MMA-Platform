@@ -1,0 +1,16 @@
+Django==5.2.1
+# psycopg2-binary is only needed when using PostgreSQL.
+# For local development with SQLite, comment it out.
+# Uncomment when deploying with PostgreSQL:
+# psycopg2-binary==2.9.10
+groq>=0.9
+requests==2.32.3
+apscheduler==3.10.4
+celery==5.4.0
+redis==5.0.7
+hypothesis==6.108.5
+pytest-django==4.8.0
+pytest==8.3.2
+WeasyPrint==62.3
+django-environ==0.11.2
+whitenoise==6.7.0

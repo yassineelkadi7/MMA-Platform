@@ -1,0 +1,128 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans "Site administration" %}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans "Home" %}</a>
+    &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<!-- Summary cards -->
+<div class="row" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+
+    <!-- Total calls — last 24 h -->
+    <div style="flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd;
+                border-radius: 4px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,.08);">
+        <p style="margin: 0 0 .25rem; font-size: .75rem; text-transform: uppercase;
+                  letter-spacing: .05em; color: #666;">
+            API Calls — Last 24 h
+        </p>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700; color: #417690;">
+            {{ total_24h }}
+        </p>
+    </div>
+
+    <!-- Total calls — last 30 days -->
+    <div style="flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd;
+                border-radius: 4px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,.08);">
+        <p style="margin: 0 0 .25rem; font-size: .75rem; text-transform: uppercase;
+                  letter-spacing: .05em; color: #666;">
+            API Calls — Last 30 Days
+        </p>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700; color: #417690;">
+            {{ total_30d }}
+        </p>
+    </div>
+
+    <!-- Success rate -->
+    <div style="flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd;
+                border-radius: 4px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,.08);">
+        <p style="margin: 0 0 .25rem; font-size: .75rem; text-transform: uppercase;
+                  letter-spacing: .05em; color: #666;">
+            Success Rate (24 h)
+        </p>
+        <p style="margin: 0; font-size: 2rem; font-weight: 700;
+                  color: {% if success_rate >= 95 %}#28a745{% elif success_rate >= 80 %}#ffc107{% else %}#dc3545{% endif %};">
+            {{ success_rate }}%
+        </p>
+    </div>
+
+</div>
+
+<!-- Last error -->
+<div style="background: #fff; border: 1px solid #ddd; border-radius: 4px;
+            padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,.08);">
+    <h2 style="font-size: 1rem; margin: 0 0 1rem; color: #333;">Most Recent Error</h2>
+
+    {% if last_error %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+                <tr>
+                    <th scope="row"
+                        style="width: 160px; padding: .5rem .75rem; text-align: left;
+                               background: #f8f8f8; border: 1px solid #eee; color: #555;
+                               font-weight: 600; font-size: .875rem;">
+                        Endpoint
+                    </th>
+                    <td style="padding: .5rem .75rem; border: 1px solid #eee;
+                               font-size: .875rem; word-break: break-all;">
+                        {{ last_error.endpoint }}
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"
+                        style="padding: .5rem .75rem; text-align: left;
+                               background: #f8f8f8; border: 1px solid #eee; color: #555;
+                               font-weight: 600; font-size: .875rem;">
+                        Status Code
+                    </th>
+                    <td style="padding: .5rem .75rem; border: 1px solid #eee; font-size: .875rem;">
+                        <span style="display: inline-block; padding: .2rem .5rem;
+                                     background: #dc3545; color: #fff; border-radius: 3px;
+                                     font-weight: 600; font-size: .8rem;">
+                            {{ last_error.status_code }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"
+                        style="padding: .5rem .75rem; text-align: left;
+                               background: #f8f8f8; border: 1px solid #eee; color: #555;
+                               font-weight: 600; font-size: .875rem;">
+                        Error Message
+                    </th>
+                    <td style="padding: .5rem .75rem; border: 1px solid #eee;
+                               font-size: .875rem; word-break: break-word;">
+                        {% if last_error.error_message %}
+                            {{ last_error.error_message }}
+                        {% else %}
+                            <em style="color: #999;">No message recorded</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"
+                        style="padding: .5rem .75rem; text-align: left;
+                               background: #f8f8f8; border: 1px solid #eee; color: #555;
+                               font-weight: 600; font-size: .875rem;">
+                        Timestamp
+                    </th>
+                    <td style="padding: .5rem .75rem; border: 1px solid #eee; font-size: .875rem;">
+                        {{ last_error.called_at|date:"N j, Y, g:i:s a e" }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: #28a745; margin: 0; font-size: .9rem;">
+            ✓ No errors recorded.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Event Calendar — MMA Fighting Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h1 class="h2 mb-4">Event Calendar</h1>
+
+    <!-- Countdown timer section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3">Next Event Countdown</h2>
+            <div id="countdown-display" aria-live="polite" aria-atomic="true">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="countdown-unit">
+                        <div class="countdown-value" id="countdown-days">--</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-separator">:</div>
+                    <div class="countdown-unit">
+                        <div class="countdown-value" id="countdown-hours">--</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-separator">:</div>
+                    <div class="countdown-unit">
+                        <div class="countdown-value" id="countdown-minutes">--</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                    <div class="countdown-separator">:</div>
+                    <div class="countdown-unit">
+                        <div class="countdown-value" id="countdown-seconds">--</div>
+                        <div class="countdown-label">Seconds</div>
+                    </div>
+                </div>
+                <p id="countdown-event-name" class="text-muted mt-2 mb-0 small"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar widget -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                <button
+                    id="cal-prev"
+                    class="btn btn-outline-secondary"
+                    style="min-height: 44px; min-width: 44px;"
+                    aria-label="Previous month"
+                >
+                    &laquo;
+                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <h2 id="cal-title" class="h5 mb-0 text-center">Loading…</h2>
+                    <button id="cal-today" class="btn btn-sm btn-outline-primary" style="min-height: 36px;">
+                        Today
+                    </button>
+                </div>
+                <button
+                    id="cal-next"
+                    class="btn btn-outline-secondary"
+                    style="min-height: 44px; min-width: 44px;"
+                    aria-label="Next month"
+                >
+                    &raquo;
+                </button>
+            </div>
+
+            <div
+                id="calendar-container"
+                data-events-url="{% url 'events:calendar_api' %}"
+                aria-label="Event calendar"
+                role="grid"
+            >
+                <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading calendar…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    /* Calendar grid styles */
+    #calendar-container {
+        min-height: 400px;
+    }
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+    .calendar-day-header {
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 8px 4px;
+        background-color: #343a40;
+        color: #fff;
+        border-radius: 4px;
+    }
+    .calendar-day {
+        min-height: 80px;
+        padding: 4px;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    .calendar-day.other-month {
+        background-color: #f8f9fa;
+        color: #adb5bd;
+    }
+    .calendar-day.today {
+        border-color: #0d6efd;
+        border-width: 2px;
+    }
+    .calendar-day-number {
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+    .calendar-event {
+        display: block;
+        background-color: #0d6efd;
+        color: #fff;
+        border-radius: 3px;
+        padding: 2px 4px;
+        margin-bottom: 2px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 22px;
+        line-height: 18px;
+    }
+    .calendar-event:hover {
+        background-color: #0b5ed7;
+        color: #fff;
+    }
+    /* Countdown styles */
+    #countdown-display {
+        font-size: 1.1rem;
+    }
+    .countdown-unit {
+        text-align: center;
+        min-width: 70px;
+    }
+    .countdown-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #0d6efd;
+    }
+    .countdown-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #6c757d;
+        letter-spacing: 0.05em;
+    }
+    .countdown-separator {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #6c757d;
+        align-self: flex-start;
+        padding-top: 4px;
+    }
+</style>
+<script src="{% static 'js/calendar.js' %}"></script>
+<script src="{% static 'js/countdown.js' %}"></script>
+{% endblock %}

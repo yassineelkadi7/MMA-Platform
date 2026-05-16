@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event_detail.event.name }} — MMA Fighting Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Back link -->
+    <a
+        href="{% url 'events:calendar' %}"
+        class="btn btn-outline-secondary mb-4"
+        style="min-height: 44px;"
+        aria-label="Back to event calendar"
+    >
+        &larr; Back to Calendar
+    </a>
+
+    <!-- Event info card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                <h1 class="card-title h2 mb-0">{{ event_detail.event.name }}</h1>
+                <span class="badge
+                    {% if event_detail.event.status == 'live' %}bg-danger
+                    {% elif event_detail.event.status == 'upcoming' %}bg-primary
+                    {% elif event_detail.event.status == 'completed' %}bg-success
+                    {% else %}bg-secondary{% endif %}
+                    fs-6 px-3 py-2">
+                    {{ event_detail.event.get_status_display }}
+                </span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Date</div>
+                    <div>{{ event_detail.event.date|date:"N j, Y" }}</div>
+                    <div class="text-muted small">{{ event_detail.event.date|date:"g:i a T" }}</div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Location</div>
+                    <div>{{ event_detail.event.location|default:"—" }}</div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Venue</div>
+                    <div>{{ event_detail.event.venue|default:"—" }}</div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">Broadcast</div>
+                    <div>{{ event_detail.event.broadcast_info|default:"—" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fight card -->
+    <h2 class="h4 mb-3">Fight Card</h2>
+
+    {% if event_detail.fights %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col" class="text-center" style="width: 60px;">#</th>
+                        <th scope="col">Fighter A</th>
+                        <th scope="col" class="text-center" style="width: 40px;">vs</th>
+                        <th scope="col">Fighter B</th>
+                        <th scope="col">Result</th>
+                        <th scope="col">Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fight in event_detail.fights %}
+                        <tr {% if fight.is_main_event %}class="table-warning"{% endif %}>
+                            <td class="text-center fw-semibold">
+                                {{ fight.bout_order }}
+                                {% if fight.is_main_event %}
+                                    <br>
+                                    <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">
+                                        Main Event
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a
+                                    href="{% url 'events:fighter_detail' fight.fighter_a.pk %}"
+                                    class="text-decoration-none d-inline-flex align-items-center fw-semibold
+                                        {% if fight.winner == fight.fighter_a %}text-success{% endif %}"
+                                    style="min-height: 44px;"
+                                >
+                                    {{ fight.fighter_a.full_name }}
+                                </a>
+                                {% if fight.winner == fight.fighter_a %}
+                                    <span class="badge bg-success ms-1">W</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center text-muted fw-bold">vs</td>
+                            <td>
+                                <a
+                                    href="{% url 'events:fighter_detail' fight.fighter_b.pk %}"
+                                    class="text-decoration-none d-inline-flex align-items-center fw-semibold
+                                        {% if fight.winner == fight.fighter_b %}text-success{% endif %}"
+                                    style="min-height: 44px;"
+                                >
+                                    {{ fight.fighter_b.full_name }}
+                                </a>
+                                {% if fight.winner == fight.fighter_b %}
+                                    <span class="badge bg-success ms-1">W</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if fight.winner %}
+                                    <span class="text-success fw-semibold">
+                                        {{ fight.winner.full_name }}
+                                    </span>
+                                {% elif event_detail.event.status == 'completed' %}
+                                    <span class="text-muted">Draw</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if fight.method %}
+                                    {{ fight.get_method_display }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-4 text-muted">
+            <p>No fights have been announced for this event yet.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
